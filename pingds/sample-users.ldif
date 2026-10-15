@@ -1,0 +1,47 @@
+# Sample users for ou=identities (ds-identities only).
+# Default password for all users: TestUser@2024
+# Loaded by: make seed
+
+dn: uid=jdoe,ou=people,ou=identities
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: jdoe
+cn: John Doe
+sn: Doe
+givenName: John
+mail: jdoe@example.com
+userPassword: TestUser@2024
+description: Demo Engineering Manager
+
+dn: uid=jsmith,ou=people,ou=identities
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: jsmith
+cn: Jane Smith
+sn: Smith
+givenName: Jane
+mail: jsmith@example.com
+manager: uid=jdoe,ou=people,ou=identities
+userPassword: TestUser@2024
+description: Demo Senior Developer
+
+dn: uid=bjohnson,ou=people,ou=identities
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: bjohnson
+cn: Bob Johnson
+sn: Johnson
+givenName: Bob
+mail: bjohnson@example.com
+manager: uid=jdoe,ou=people,ou=identities
+userPassword: TestUser@2024
+description: Demo DevOps Engineer

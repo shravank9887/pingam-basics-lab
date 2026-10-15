@@ -1,0 +1,27 @@
+/*
+ * Fresh AM install against separate DS containers:
+ *   cfg store  -> ds-config       (am-config profile)
+ *   user store -> ds-identities   (am-identity-store profile)
+ * CTS is wired to ds-cts afterwards via configure-cts.amster.
+ * &{NAME} placeholders are filled in by run.sh before Amster runs.
+ */
+install-openam \
+  --serverUrl &{AM_URL} \
+  --adminPwd &{AM_ADMIN_PASSWORD} \
+  --acceptLicense \
+  --cfgDir /opt/am-config \
+  --cookieDomain &{AM_COOKIE_DOMAIN} \
+  --cfgStoreHost ds-config \
+  --cfgStorePort 1636 \
+  --cfgStoreSsl SSL \
+  --cfgStoreRootSuffix ou=am-config \
+  --cfgStoreDirMgr uid=am-config,ou=admins,ou=am-config \
+  --cfgStoreDirMgrPwd &{AM_CONFIG_PASSWORD} \
+  --userStoreType LDAPv3ForOpenDS \
+  --userStoreHost ds-identities \
+  --userStorePort 1636 \
+  --userStoreSsl SSL \
+  --userStoreRootSuffix ou=identities \
+  --userStoreDirMgr uid=am-identity-bind-account,ou=admins,ou=identities \
+  --userStoreDirMgrPwd &{AM_IDENTITY_PASSWORD}
+:exit

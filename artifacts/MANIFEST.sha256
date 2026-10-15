@@ -1,0 +1,4 @@
+# sha256  filename   (sha256sum -c / shasum -a 256 -c compatible)
+22f9d02531e3837df43c1fb317bfda7da52db7ab9ad1a00672eb4eb15ffb4d7f  AM-8.0.2.war
+2fed3bae6cec81ef3ffe0ec87edd9cbb000a75bb8cff2605b22d839da281249f  Amster-8.0.2.zip
+0a34e449cc59cc5d1a8aba22f5bbebcd9dffe9f3fbc6df8eb71b77757435f274  DS-8.0.2.zip

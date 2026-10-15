@@ -1,0 +1,25 @@
+/*
+ * Point Server Defaults CTS at the dedicated ds-cts container (am-cts profile).
+ * Root suffix per Ping docs: ou=famrecords,ou=openam-session,ou=tokens
+ */
+connect &{AM_URL} -k /opt/am-config/security/keys/amster/amster_rsa
+update DefaultCtsDataStoreProperties --global --body '{
+  "amconfig.org.forgerock.services.cts.store.common.section" : {
+    "org.forgerock.services.cts.store.location" : "external",
+    "org.forgerock.services.cts.store.root.suffix" : "ou=famrecords,ou=openam-session,ou=tokens",
+    "org.forgerock.services.cts.store.max.connections" : "100",
+    "org.forgerock.services.cts.store.page.size" : 0,
+    "org.forgerock.services.cts.store.vlv.page.size" : 1000
+  },
+  "amconfig.org.forgerock.services.cts.store.external.section" : {
+    "org.forgerock.services.cts.store.ssl.enabled" : true,
+    "org.forgerock.services.cts.store.mtls.enabled" : false,
+    "org.forgerock.services.cts.store.starttls.enabled" : false,
+    "org.forgerock.services.cts.store.directory.name" : "&{CTS_HOST}:&{CTS_PORT}",
+    "org.forgerock.services.cts.store.loginid" : "uid=openam_cts,ou=admins,ou=famrecords,ou=openam-session,ou=tokens",
+    "org.forgerock.services.cts.store.password" : "&{AM_CTS_PASSWORD}",
+    "org.forgerock.services.cts.store.heartbeat" : 10,
+    "org.forgerock.services.cts.store.affinity.enabled" : false
+  }
+}'
+:exit

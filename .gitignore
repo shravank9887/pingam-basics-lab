@@ -1,0 +1,40 @@
+# ---- Licensed Ping Identity binaries: NEVER commit
+artifacts/*
+!artifacts/README.md
+!artifacts/MANIFEST.sha256
+**/software/
+*.war
+*.zip
+*.jar
+
+# ---- Secrets / local state
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.jks
+*.jceks
+*.keystore
+*.truststore
+*.har
+
+# ---- AI-assistant / editor / OS
+.claude/
+CLAUDE.md
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
+*.swp
+
+# ---- Build output
+target/
+__pycache__/
+*.pyc
+node_modules/
+*.log

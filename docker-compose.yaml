@@ -1,0 +1,181 @@
+# PingAM Basics lab — AM + three single-profile PingDS instances + Amster.
+#   core (default):  ds-config, ds-identities, ds-cts, pingam
+#   --profile config: amster one-shot install + external CTS wiring  (make config)
+# All values come from .env (make secrets). Licensed binaries from artifacts/.
+
+name: ${COMPOSE_PROJECT_NAME:-pingam-basics}
+
+x-build-args: &build-args
+  AM_VERSION: ${AM_VERSION:?set AM_VERSION in .env}
+  DS_VERSION: ${DS_VERSION:?set DS_VERSION in .env}
+
+x-ds-env: &ds-env
+  DS_DEPLOYMENT_ID: ${DS_DEPLOYMENT_ID:?run make secrets}
+  DS_DEPLOYMENT_PASSWORD: ${DS_DEPLOYMENT_PASSWORD:?run make secrets}
+  DS_ROOT_PASSWORD: ${DS_ROOT_PASSWORD:?run make secrets}
+  DS_MONITOR_PASSWORD: ${DS_MONITOR_PASSWORD:?run make secrets}
+  TRUSTSTORE_PASSWORD: ${TRUSTSTORE_PASSWORD:?run make secrets}
+  OPENDJ_JAVA_ARGS: -server -Xmx512m -XX:+UseG1GC
+
+services:
+  ds-config:
+    build:
+      context: .
+      dockerfile: pingds/Dockerfile
+      args: *build-args
+    image: pingam-basics/pingds:${DS_VERSION}
+    hostname: ds-config
+    user: "0"
+    networks:
+      fr-net:
+        aliases: [ds-config]
+    ports:
+      - "${DS_CONFIG_LDAP_PORT:-1389}:1389"
+      - "${DS_CONFIG_LDAPS_PORT:-1636}:1636"
+      - "${DS_CONFIG_ADMIN_PORT:-4444}:4444"
+    environment:
+      <<: *ds-env
+      DS_HOSTNAME: ds-config
+      DS_SERVER_ID: ds-config-01
+      DS_PROFILE: am-config
+      AM_CONFIG_PASSWORD: ${AM_CONFIG_PASSWORD:?run make secrets}
+      DS_EXPORT_CERTS: "true"
+    volumes:
+      - ds-config-data:/opt/pingds-data
+      - shared-certs:/opt/certs
+    restart: unless-stopped
+    healthcheck:
+      # Green only once LDAP answers AND the shared CA truststore has been exported.
+      test: ["CMD-SHELL", "test -s /opt/certs/truststore.p12 && nc -z localhost 1389"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
+
+  ds-identities:
+    image: pingam-basics/pingds:${DS_VERSION}
+    hostname: ds-identities
+    user: "0"
+    networks:
+      fr-net:
+        aliases: [ds-identities]
+    ports:
+      - "${DS_IDENTITIES_LDAP_PORT:-2389}:1389"
+      - "${DS_IDENTITIES_LDAPS_PORT:-2636}:1636"
+      - "${DS_IDENTITIES_ADMIN_PORT:-5444}:4444"
+    environment:
+      <<: *ds-env
+      DS_HOSTNAME: ds-identities
+      DS_SERVER_ID: ds-identities-01
+      DS_PROFILE: am-identity-store
+      AM_IDENTITY_PASSWORD: ${AM_IDENTITY_PASSWORD:?run make secrets}
+      DS_EXPORT_CERTS: "false"
+    volumes:
+      - ds-identities-data:/opt/pingds-data
+      - shared-certs:/opt/certs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1389"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
+
+  ds-cts:
+    image: pingam-basics/pingds:${DS_VERSION}
+    hostname: ds-cts
+    user: "0"
+    networks:
+      fr-net:
+        aliases: [ds-cts]
+    ports:
+      - "${DS_CTS_LDAP_PORT:-3389}:1389"
+      - "${DS_CTS_LDAPS_PORT:-3636}:1636"
+      - "${DS_CTS_ADMIN_PORT:-6444}:4444"
+    environment:
+      <<: *ds-env
+      DS_HOSTNAME: ds-cts
+      DS_SERVER_ID: ds-cts-01
+      DS_PROFILE: am-cts
+      AM_CTS_PASSWORD: ${AM_CTS_PASSWORD:?run make secrets}
+      DS_EXPORT_CERTS: "false"
+    volumes:
+      - ds-cts-data:/opt/pingds-data
+      - shared-certs:/opt/certs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 1389"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
+
+  pingam:
+    build:
+      context: .
+      dockerfile: pingam/Dockerfile
+      args: *build-args
+    image: pingam-basics/pingam:${AM_VERSION}
+    hostname: pingam
+    networks:
+      fr-net:
+        aliases: [pingam, "${AM_FQDN:-am.example.com}"]
+    ports:
+      - "${AM_HTTP_PORT:-8080}:8080"
+    environment:
+      TRUSTSTORE_PASSWORD: ${TRUSTSTORE_PASSWORD:?run make secrets}
+    volumes:
+      - pingam-config:/opt/am-config
+      - pingam-logs:/usr/local/tomcat/logs
+      - shared-certs:/opt/certs:ro
+    depends_on:
+      ds-config:
+        condition: service_healthy
+      ds-identities:
+        condition: service_healthy
+      ds-cts:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/am/isAlive.jsp"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+
+  amster:
+    profiles: [config]
+    build:
+      context: .
+      dockerfile: amster/Dockerfile
+      args: *build-args
+    image: pingam-basics/amster:${AM_VERSION}
+    user: "1001:1001"
+    networks: [fr-net]
+    environment:
+      AM_URL: http://${AM_FQDN:-am.example.com}:8080/am
+      AM_COOKIE_DOMAIN: ${AM_COOKIE_DOMAIN:-example.com}
+      AM_ADMIN_PASSWORD: ${AM_ADMIN_PASSWORD:?run make secrets}
+      AM_CONFIG_PASSWORD: ${AM_CONFIG_PASSWORD:?run make secrets}
+      AM_IDENTITY_PASSWORD: ${AM_IDENTITY_PASSWORD:?run make secrets}
+      AM_CTS_PASSWORD: ${AM_CTS_PASSWORD:?run make secrets}
+      CTS_HOST: ds-cts
+      CTS_PORT: "1636"
+    volumes:
+      - pingam-config:/opt/am-config
+    depends_on:
+      pingam:
+        condition: service_healthy
+    restart: "no"
+
+networks:
+  fr-net:
+    name: ${COMPOSE_PROJECT_NAME:-pingam-basics}_fr-net
+
+volumes:
+  ds-config-data:
+  ds-identities-data:
+  ds-cts-data:
+  shared-certs:
+  pingam-config:
+  pingam-logs:
