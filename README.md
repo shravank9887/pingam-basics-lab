@@ -84,3 +84,7 @@ make reset YES=1 && make up && make config && make seed && make smoke
 - CTS root suffix used by AM: `ou=famrecords,ou=openam-session,ou=tokens`
 - `make seed` detaches the DS "Common passwords" validator so demo password `TestUser@2024` is accepted
 - DS instances use `--instancePath` on a Docker volume so data survives container recreate
+
+## Getting the software
+
+Step-by-step signup, download, and docs map (after the ForgeRock → Ping merge): [docs/getting-ping-software.md](docs/getting-ping-software.md).

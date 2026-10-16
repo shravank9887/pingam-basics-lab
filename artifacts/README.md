@@ -3,7 +3,7 @@
 These files are licensed by Ping Identity and **must not be redistributed**, so this
 folder is git-ignored apart from this README and `MANIFEST.sha256`.
 
-1. Sign in to **Backstage** (<https://backstage.pingidentity.com>) → *Downloads*.
+1. Follow [docs/getting-ping-software.md](../docs/getting-ping-software.md) (downloads: <https://product-downloads.pingidentity.com/>; old Backstage redirects there).
 2. Download exactly these versions and save them here **with these exact names**:
 
 | File | Product | Needed for |
