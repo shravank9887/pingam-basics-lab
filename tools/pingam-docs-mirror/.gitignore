@@ -1,0 +1,4 @@
+# Ping-owned mirrored bodies — never commit
+pingam/
+_meta/
+*.tmp

@@ -88,3 +88,7 @@ make reset YES=1 && make up && make config && make seed && make smoke
 ## Getting the software
 
 Step-by-step signup, download, and docs map (after the ForgeRock → Ping merge): [docs/getting-ping-software.md](docs/getting-ping-software.md).
+
+## Offline PingAM docs (for AI / Copilot)
+
+This repo includes a **fetch script** (not Ping’s page text) under [tools/pingam-docs-mirror](tools/pingam-docs-mirror/). Run it once on your machine to download PingAM 8 Markdown pages locally, then point Copilot at that folder. Mirrored page bodies stay gitignored (© Ping Identity).
